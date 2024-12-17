@@ -1,0 +1,5 @@
+- initial
+npm init 
+
+- install express
+npm i express --save
