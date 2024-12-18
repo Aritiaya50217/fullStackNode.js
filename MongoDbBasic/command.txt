@@ -1,0 +1,23 @@
+- create package.json
+npm init
+
+- install node express
+npm i express --save
+
+- install body parser
+npm i body-parser
+
+- install dotenv
+npm i dotenv
+
+- install TypeScript
+npm i typescript ts-node @types/node --save-dev
+
+- install prisma
+npm i prisma --save-dev
+
+- connect database by prisma
+npx prisma init --datasource-provider databaseType เช่น npx prisma init --datasource-provider mongodb
+
+- generate
+npx prisma generate
