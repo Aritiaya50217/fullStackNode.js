@@ -14,8 +14,9 @@ datasource db {
 }
 
 model Customer {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String 
-  email String 
-  phone String
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  email  String
+  phone  String
+  credit Int?
 }
