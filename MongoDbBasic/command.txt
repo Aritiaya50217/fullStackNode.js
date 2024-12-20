@@ -20,4 +20,7 @@ npm i prisma --save-dev
 npx prisma init --datasource-provider databaseType เช่น npx prisma init --datasource-provider mongodb
 
 - generate
-npx prisma generate
+npx prisma generate 
+
+- กรณีต้องการ generate พร้อมกับ push ขึ้นไปที่ mongodb
+npx prisma db push    

@@ -99,8 +99,8 @@ app.get("/customers/startsWith", async (req, res) => {
     }
 });
 
-app.get("/customers/endsWith",async(req,res)=>{
-    try{
+app.get("/customers/endsWith", async (req, res) => {
+    try {
         const keyword = req.body.keyword
         const customers = await prisma.customer.findMany({
             where: {
@@ -110,13 +110,13 @@ app.get("/customers/endsWith",async(req,res)=>{
             }
         });
         res.json(customers)
-    }catch(error){
+    } catch (error) {
         return res.status(500).json({ error: error.message })
     }
 })
 
-app.get("/customers/contains",async(req , res)=>{
-    try{
+app.get("/customers/contains", async (req, res) => {
+    try {
         const keyword = req.body.keyword
         const customers = await prisma.customer.findMany({
             where: {
@@ -127,10 +127,253 @@ app.get("/customers/contains",async(req , res)=>{
         });
         res.json(customers)
 
-    }catch(error){
+    } catch (error) {
         return res.status(500).json({ error: error.message })
     }
 })
+
+app.get("/customers/sortByName", async (req, res) => {
+    try {
+        const customer = await prisma.customer.findMany({
+            orderBy: {
+                name: 'asc'
+            }
+        });
+        res.json(customer);
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/whereAnd/:name", async (req, res) => {
+    try {
+        const keyword = req.params.name
+        if (keyword == "") {
+            const customer = await prisma.customer.findMany();
+            res.json(customer);
+        } else {
+            const customer = await prisma.customer.findMany(
+                {
+                    where: {
+                        AND: [
+                            {
+                                name: {
+                                    contains: keyword
+                                }
+                            },
+                            {
+                                credit: {
+                                    lt: 2
+                                }
+                            }
+
+                        ]
+                    }
+                })
+            res.json(customer)
+        }
+
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/betweenCredit/:start/:end", async (req, res) => {
+    try {
+        const customer = await prisma.customer.findMany({
+            where: {
+                credit: {
+                    gte: Number(req.params.start),
+                    lte: Number(req.params.end)
+                }
+            }
+        });
+        res.json(customer)
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/sumCredit", async (req, res) => {
+    try {
+        const sumCredit = await prisma.customer.aggregate({
+            _sum: {
+                credit: true
+            }
+        });
+        res.json({ sumCredit: sumCredit._sum.credit })
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/maxCredit", async (req, res) => {
+    try {
+        const max = await prisma.customer.aggregate({
+            _max: {
+                credit: true
+            }
+        })
+        res.json({ maxCredit: max._max })
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/minCredit", async (req, res) => {
+    try {
+        const min = await prisma.customer.aggregate({
+            _min: {
+                credit: true
+            }
+        })
+        res.json({ minCredit: min._min })
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/averageCredit", async (req, res) => {
+    try {
+        const avg = await prisma.customer.aggregate({
+            _avg: {
+                credit: true
+            }
+        })
+        res.json({ avg: avg._avg.credit.toFixed(2) })
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/countCustomer", async (req, res) => {
+    try {
+        const count = await prisma.customer.count();
+        res.json({ count: count })
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.post("/order/create", async (req, res) => {
+    try {
+        const customerId = req.body.customerId;
+        const amount = req.body.amount;
+        const order = await prisma.order.create({
+            data: {
+                customerId: customerId,
+                amount: amount,
+            }
+        })
+        res.json(order)
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.put("/order/:id", async (req, res) => {
+    try {
+        const payload = req.body;
+        // const arr = payload.productId
+        await prisma.order.update({
+            where: {
+                id: req.params.id
+            },
+            data: payload
+        })
+        res.status(201).json({ message: "success" })
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/order/:customerId", async (req, res) => {
+    try {
+        const customerId = req.params.customerId
+        const orders = await prisma.order.findMany({
+            where: {
+                customerId: customerId
+            }
+        })
+        res.json({ orders: orders });
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/orders", async (req, res) => {
+    try {
+        const orders = await prisma.customer.findMany({
+            include: {
+                Order: true
+            }
+        });
+        res.json(orders);
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/orders/:id", async (req, res) => {
+    try {
+        if (req.params.id == "") {
+            return res.json(400).json({ error: "orders id is not found" })
+        }
+        const order = await prisma.order.findUnique({
+            where: {
+                id: req.params.id
+            }
+        })
+        res.json({ order: order })
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.post("/product/create", async (req, res) => {
+    try {
+        const name = req.body.name;
+        const price = req.body.price;
+        const product = await prisma.product.create({
+            data: {
+                name: name,
+                price: price,
+            }
+        })
+        res.json(product)
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
+app.get("/customers/products/:customerId", async (req, res) => {
+    try {
+        const customerId = req.params.customerId
+        const customers = await prisma.customer.findMany({
+            where: {
+                id: customerId
+            },
+            include: {
+                Order: {
+                    include: {
+                        Product: true
+                    }
+                }
+            }
+        });
+        res.json(customers)
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+})
+
 
 
 app.listen(port, () => {
